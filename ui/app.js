@@ -1,73 +1,145 @@
-// Run code only after HTML is fully loaded
+// Run this code only after the HTML page is fully loaded
 document.addEventListener("DOMContentLoaded", () => {
 
-  // Chat messages container
+  // Reference to the container where messages are shown
   const chatMessages = document.getElementById("chat-messages");
 
-  // Text input area
+  // Reference to the textarea where user types
   const chatInput = document.getElementById("chat-input");
 
-  // Send button
+  // Reference to the send button
   const sendButton = document.getElementById("send-button");
 
-  // Main send message function
+  // Main function to send a message
   function sendMessage() {
 
-    // Read and trim input
+    // Read user input and remove extra spaces
     const messageText = chatInput.value.trim();
 
-    // Do nothing if input is empty
+    // Stop if input is empty
     if (messageText === "") return;
 
     // ---------- USER MESSAGE ----------
+
+    // Create a div for user's message
     const userMessage = document.createElement("div");
-    userMessage.className = "message user-message";
+
+    // Apply user message styling
+    userMessage.className = "user-message";
+
+    // Preserve formatting exactly as typed
     userMessage.textContent = messageText;
+
+    // Add message to chat
     chatMessages.appendChild(userMessage);
 
-    // Clear input
+    // Clear textarea after sending
     chatInput.value = "";
 
-    // Scroll down
+    // Reset textarea height back to original
+    chatInput.style.height = "auto";
+
+    // Scroll chat to bottom
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
     // ---------- THINKING INDICATOR ----------
-    const thinkingMessage = document.createElement("div");
-    thinkingMessage.className = "message bot-message thinking";
-    thinkingMessage.textContent = "Thinking...";
-    chatMessages.appendChild(thinkingMessage);
 
+    // Create bot "Thinking..." message
+    const thinking = document.createElement("div");
+
+    // Apply bot styling
+    thinking.className = "bot-message";
+
+    // Show thinking text
+    thinking.textContent = "Thinking...";
+
+    // Add to chat
+    chatMessages.appendChild(thinking);
+
+    // Scroll again
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
     // ---------- SIMULATED BOT RESPONSE ----------
+
+    // Simulate backend delay
     setTimeout(() => {
 
-      // Remove thinking message
-      thinkingMessage.remove();
+      // Remove thinking indicator
+      thinking.remove();
 
-      // Bot reply
+      // Create actual bot response
       const botMessage = document.createElement("div");
-      botMessage.className = "message bot-message";
+
+      // Apply bot styling
+      botMessage.className = "bot-message";
+
+      // Temporary response text
       botMessage.textContent = "Got it! I’ve received your message.";
+
+      // Add to chat
       chatMessages.appendChild(botMessage);
 
+      // Scroll to bottom
       chatMessages.scrollTop = chatMessages.scrollHeight;
 
     }, 1200);
   }
 
-  // Send on button click
+  // Send message when send button is clicked
   sendButton.addEventListener("click", sendMessage);
 
-  // Keyboard handling
-  chatInput.addEventListener("keydown", (event) => {
+  // Keyboard behavior inside textarea
+  chatInput.addEventListener("keydown", (e) => {
 
-    // Enter → send
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      sendMessage();
+    // Enter without Shift → send message
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();            // Prevent new line
+      sendMessage();                 // Send message
     }
 
-    // Shift + Enter → newline (default behavior)
+    // Shift + Enter → default behavior (new line)
   });
+
+  // Auto-resize textarea while typing
+  chatInput.addEventListener("input", () => {
+
+    // Reset height so shrinking works
+    chatInput.style.height = "auto";
+
+    // Expand height up to 200px max
+    chatInput.style.height =
+      Math.min(chatInput.scrollHeight, 200) + "px";
+  });
+
+  // Reference to hidden file input
+const fileInput = document.getElementById("file-input");
+
+// Reference to attach (+) button
+const attachButton = document.getElementById("attach-button");
+
+// When + button is clicked, open file picker
+attachButton.addEventListener("click", () => {
+  fileInput.click(); // Opens system file dialog
+});
+
+// When a file is selected
+fileInput.addEventListener("change", () => {
+  const file = fileInput.files[0];
+
+  // If no file selected, do nothing
+  if (!file) return;
+
+  // Temporary UI feedback (later we’ll upload it)
+  const fileMessage = document.createElement("div");
+  fileMessage.className = "user-message";
+  fileMessage.textContent = `📎 Attached: ${file.name}`;
+  chatMessages.appendChild(fileMessage);
+
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+
+  // Reset input so same file can be re-selected later
+  fileInput.value = "";
+});
+
+
 });

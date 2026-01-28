@@ -1,189 +1,190 @@
 /* ============================= */
-/* Global Page Styling           */
+/* GLOBAL STYLES                 */
 /* ============================= */
 
-body {
-  margin: 0;                                /* Remove default browser margin */
-  height: 100vh;                           /* Full viewport height */
-  font-family: system-ui, -apple-system, BlinkMacSystemFont,
-               "Segoe UI", Roboto, Arial, sans-serif;
-  background-color: #f6f9fc;               /* Stripe soft background */
-  color: #0a2540;                          /* Stripe navy text */
+/* Apply full height and base font */
+html, body {
+  height: 100%;                     /* Full screen height */
+  margin: 0;                        /* Remove default spacing */
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+  background-color: #f6f9fc;        /* Stripe-like background */
+  color: #0a2540;                   /* Dark navy text */
 }
 
-/* Root container holding sidebar + chat */
+/* Main app layout */
 .app-container {
-  display: flex;                           /* Horizontal layout */
-  height: 100%;                            /* Full height */
+  display: flex;                    /* Horizontal split */
+  height: 100vh;                    /* Full viewport height */
 }
 
 /* ============================= */
-/* Sidebar (Left Panel)          */
+/* SIDEBAR (LEFT)                */
 /* ============================= */
 
 .sidebar {
-  width: 25%;                              /* Sidebar width */
-  background-color: #ffffff;
-  border-right: 1px solid #e6ebf1;
+  width: 20%;                       /* 20% width as requested */
+  min-width: 220px;                 /* Prevent too small sidebar */
+  background: #ffffff;              /* White background */
+  border-right: 1px solid #e6ebf1;  /* Subtle divider */
+  padding: 16px;                    /* Inner spacing */
   display: flex;
-  flex-direction: column;
-  padding: 16px;
+  flex-direction: column;           /* Vertical stacking */
 }
 
+/* New Chat button */
 .new-chat-btn {
-  background-color: #635bff;               /* Stripe purple */
-  color: #ffffff;
-  padding: 10px;
-  border-radius: 6px;
+  background: #FFF6D9;             
+  color: black;
   border: none;
+  border-radius: 6px;
+  padding: 10px;
   cursor: pointer;
   margin-bottom: 16px;
 }
 
-.new-chat-btn:hover {
-  opacity: 0.9;
-}
-
+/* Chat history list */
 .chat-history {
-  flex: 1;
-  overflow-y: auto;
+  flex: 1;                          /* Take remaining space */
+  overflow-y: auto;                 /* Scroll if long */
 }
 
+/* Individual history item */
 .chat-history-item {
+  background: #f6f9fc;
   padding: 10px;
   border-radius: 6px;
-  background-color: #f6f9fc;
   margin-bottom: 8px;
   cursor: pointer;
 }
 
-.chat-history-item:hover {
-  background-color: #e6ebf1;
-}
-
 /* ============================= */
-/* Chat Area (Right Panel)       */
+/* CHAT AREA (RIGHT)             */
 /* ============================= */
 
 .chat-area {
-  flex: 1;
+  flex: 1;                          /* Fill remaining width */
   display: flex;
-  flex-direction: column;
+  flex-direction: column;           /* Header → messages → input */
 }
 
-/* Header that stays forever */
+/* Fixed header */
 .chat-header {
   height: 56px;
+  background: white;
+  border-bottom: 1px solid #e6ebf1;
   display: flex;
   align-items: center;
   padding: 0 24px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e6ebf1;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
 }
 
-/* ============================= */
-/* Stripe-Inspired Title         */
-/* ============================= */
-
+/* Header title */
 .chat-title {
-  font-family: "sohne-var", "Helvetica Neue", Arial, sans-serif;
-  font-weight: 425;                        /* Stripe semibold feel */
-  font-size: 20px;
-  letter-spacing: -0.03em;
-
-  /* Gradient text (Stripe inspired) */
-  background: linear-gradient(90deg, #635bff, #0a2540);
-
-  /* Standard property (for compatibility & linters) */
-  background-clip: text;
-
-  /* WebKit fallback (required in Chrome/Safari) */
-  -webkit-background-clip: text;
-
-  /* Make text transparent so gradient is visible */
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-
-  user-select: none;                       /* Prevent selection highlight */
+  font-weight: 500;
+  font-size: 18px;
+  letter-spacing: -0.2px;
 }
 
 /* ============================= */
-/* Chat Messages                 */
+/* MESSAGES                      */
 /* ============================= */
 
 .chat-messages {
-  flex: 1;
+  flex: 1;                          /* Fill vertical space */
   padding: 24px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+  overflow-y: auto;                 /* Scrollable */
 }
 
-/* Base message bubble */
-.message {
-  max-width: 60%;
-  padding: 14px;
-  border-radius: 10px;
-  margin-bottom: 12px;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
-  word-wrap: break-word;                          
-  white-space: pre-wrap;      /* 🔑 THIS LINE preserves newlines & spacing */
-}
-
-/* User message (right aligned) */
+/* User message bubble (right side) */
 .user-message {
-  margin-left: auto;
-  background-color: #635bff;
-  color: #ffffff;
+  max-width: 65%;
+  margin-left: auto;                /* Push to right */
+  background: #FFF6D9;
+  color: black;
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  white-space: pre-wrap;            /* Preserve line breaks */
 }
 
-/* Bot message (left aligned) */
+/* Bot message bubble (left side) */
 .bot-message {
-  background-color: #ffffff;
-  color: #0a2540;
-}
-
-/* Thinking indicator */
-.thinking {
-  font-style: italic;
-  opacity: 0.7;
+  max-width: 65%;
+  background: white;
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  white-space: pre-wrap;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.06);
 }
 
 /* ============================= */
-/* Input Area (Bottom)           */
+/* INPUT AREA                    */
 /* ============================= */
 
 .chat-input-container {
-  display: flex;
-  gap: 12px;
-  padding: 16px;
   border-top: 1px solid #e6ebf1;
-  background-color: #ffffff;
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+  background: #f6f9fc; /* ✅ same as chat area & capsule */
 }
 
+/* Capsule-style wrapper */
+.chat-input-capsule {
+  width: 100%;
+  max-width: 720px;                 /* ChatGPT-like width */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;     /* ✅ white capsule interior */
+  border-radius: 999px;             /* Capsule shape */
+  padding: 10px 12px;
+  border: 1px solid #e6ebf1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Text input */
 .chat-input {
   flex: 1;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #e6ebf1;
-  outline: none;
-  resize: none;                           /* Disable resize handle */
-}
-
-.chat-input:focus {
-  border-color: #635bff;
-}
-
-.send-button {
-  background-color: #635bff;
-  color: #ffffff;
-  padding: 10px 18px;
-  border-radius: 6px;
   border: none;
-  cursor: pointer;
+  outline: none;
+  resize: none;
+  background: transparent;
+  font-size: 15px;
+  max-height: 200px;
 }
 
-.send-button:hover {
+/* Icon buttons (+ and send arrow) */
+.icon-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: black;
+  border: none;
+  font-size: 30px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.send-icon-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgb(236, 135, 3);
+  color: white;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Hover effect */
+.icon-button:hover,
+.send-icon-button:hover {
   opacity: 0.9;
 }
