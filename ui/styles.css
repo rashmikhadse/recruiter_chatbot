@@ -3,26 +3,26 @@
 /* ============================= */
 
 body {
-  margin: 0;
-  height: 100vh;
+  margin: 0;                                /* Remove default browser margin */
+  height: 100vh;                           /* Full viewport height */
   font-family: system-ui, -apple-system, BlinkMacSystemFont,
                "Segoe UI", Roboto, Arial, sans-serif;
-  background-color: #f6f9fc;
-  color: #0a2540;
+  background-color: #f6f9fc;               /* Stripe soft background */
+  color: #0a2540;                          /* Stripe navy text */
 }
 
-/* Root layout */
+/* Root container holding sidebar + chat */
 .app-container {
-  display: flex;
-  height: 100%;
+  display: flex;                           /* Horizontal layout */
+  height: 100%;                            /* Full height */
 }
 
 /* ============================= */
-/* Sidebar                       */
+/* Sidebar (Left Panel)          */
 /* ============================= */
 
 .sidebar {
-  width: 25%;
+  width: 25%;                              /* Sidebar width */
   background-color: #ffffff;
   border-right: 1px solid #e6ebf1;
   display: flex;
@@ -31,7 +31,7 @@ body {
 }
 
 .new-chat-btn {
-  background-color: #635bff;
+  background-color: #635bff;               /* Stripe purple */
   color: #ffffff;
   padding: 10px;
   border-radius: 6px;
@@ -62,7 +62,7 @@ body {
 }
 
 /* ============================= */
-/* Chat Area                     */
+/* Chat Area (Right Panel)       */
 /* ============================= */
 
 .chat-area {
@@ -71,7 +71,7 @@ body {
   flex-direction: column;
 }
 
-/* Header */
+/* Header that stays forever */
 .chat-header {
   height: 56px;
   display: flex;
@@ -79,29 +79,37 @@ body {
   padding: 0 24px;
   background-color: #ffffff;
   border-bottom: 1px solid #e6ebf1;
-  box-shadow: 0 1px 0 rgba(0,0,0,0.04);
-}
-
-/* Stripe-inspired title */
-.chat-title {
-  font-family: "sohne-var", "Helvetica Neue", Arial, sans-serif;
-  font-weight: 425;
-  font-size: 20px;
-  letter-spacing: -0.03em;
-
-  background: linear-gradient(
-    90deg,
-    #635bff,
-    #0a2540
-  );
-
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  user-select: none;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
 }
 
 /* ============================= */
-/* Messages                      */
+/* Stripe-Inspired Title         */
+/* ============================= */
+
+.chat-title {
+  font-family: "sohne-var", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 425;                        /* Stripe semibold feel */
+  font-size: 20px;
+  letter-spacing: -0.03em;
+
+  /* Gradient text (Stripe inspired) */
+  background: linear-gradient(90deg, #635bff, #0a2540);
+
+  /* Standard property (for compatibility & linters) */
+  background-clip: text;
+
+  /* WebKit fallback (required in Chrome/Safari) */
+  -webkit-background-clip: text;
+
+  /* Make text transparent so gradient is visible */
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+
+  user-select: none;                       /* Prevent selection highlight */
+}
+
+/* ============================= */
+/* Chat Messages                 */
 /* ============================= */
 
 .chat-messages {
@@ -118,18 +126,19 @@ body {
   padding: 14px;
   border-radius: 10px;
   margin-bottom: 12px;
-  box-shadow: 0 12px 24px rgba(0,0,0,0.06);
-  word-wrap: break-word;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+  word-wrap: break-word;                          
+  white-space: pre-wrap;      /* 🔑 THIS LINE preserves newlines & spacing */
 }
 
-/* User message (right) */
+/* User message (right aligned) */
 .user-message {
   margin-left: auto;
   background-color: #635bff;
   color: #ffffff;
 }
 
-/* Bot message (left) */
+/* Bot message (left aligned) */
 .bot-message {
   background-color: #ffffff;
   color: #0a2540;
@@ -142,7 +151,7 @@ body {
 }
 
 /* ============================= */
-/* Input Bar                     */
+/* Input Area (Bottom)           */
 /* ============================= */
 
 .chat-input-container {
@@ -159,7 +168,7 @@ body {
   border-radius: 6px;
   border: 1px solid #e6ebf1;
   outline: none;
-  resize: none;
+  resize: none;                           /* Disable resize handle */
 }
 
 .chat-input:focus {
