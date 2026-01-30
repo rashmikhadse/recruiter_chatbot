@@ -1,83 +1,61 @@
 <!DOCTYPE html>
-<!-- Declares HTML5 document -->
 <html lang="en">
 <head>
-  <!-- Character encoding to support all text -->
   <meta charset="UTF-8" />
-
-  <!-- Makes the layout responsive on all devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Title shown on browser tab -->
   <title>Recruiter Assistant</title>
 
-  <!-- Favicons for browser tab -->
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
-  <link rel="icon" href="favicon.ico" />
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/ui/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/ui/favicon-16x16.png" />
+  <link rel="icon" href="/ui/favicon.ico" />
 
-  <!-- Tailwind CDN (used only for base utilities if needed) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Custom CSS file -->
-  <link rel="stylesheet" href="styles.css" />
+  <!-- Styles -->
+  <link rel="stylesheet" href="/ui/styles.css" />
 </head>
 
 <body>
 
-  <!-- Main container holding sidebar + chat -->
   <div class="app-container">
 
     <!-- LEFT SIDEBAR -->
     <aside class="sidebar">
 
-      <!-- Button to start a new chat -->
       <button class="new-chat-btn">+ New Chat</button>
 
-      <!-- Static chat history list (will be dynamic later) -->
-      <div class="chat-history">
-        <div class="chat-history-item">Data Analyst – UK</div>
-        <div class="chat-history-item">Python Backend Engineer</div>
-      </div>
+      <!-- DYNAMIC chat history -->
+      <div class="chat-history" id="chat-history"></div>
+
     </aside>
 
-    <!-- RIGHT MAIN CHAT AREA -->
+    <!-- CHAT AREA -->
     <main class="chat-area">
 
-      <!-- Header that always stays visible -->
       <header class="chat-header">
         <span class="chat-title">Recruiter Assistant</span>
       </header>
 
-      <!-- Container where chat messages appear -->
       <section id="chat-messages" class="chat-messages"></section>
 
-      <!-- Bottom input area -->
       <footer class="chat-input-container">
-
-        <!-- Capsule-style chat box -->
         <div class="chat-input-capsule">
 
-          <!-- Attach (+) icon button -->
-          <!-- Hidden file input (real file picker) -->
-              <input
-                type="file"
-                id="file-input"
-                accept=".pdf,.doc,.docx"
-                style="display: none"
-              />
+          <input
+            type="file"
+            id="file-input"
+            accept=".pdf,.doc,.docx"
+            style="display: none"
+          />
 
-              <!-- Attach button -->
-              <button
-                class="icon-button"
-                id="attach-button"
-                title="Attach file"
-              >
-                +
-              </button>
+          <button
+            class="icon-button"
+            id="attach-button"
+            title="Attach file"
+          >
+            +
+          </button>
 
-
-          <!-- User input textarea -->
           <textarea
             id="chat-input"
             class="chat-input"
@@ -85,20 +63,18 @@
             rows="1"
           ></textarea>
 
-          <!-- Send button (arrow icon) -->
           <button id="send-button" class="send-icon-button" title="Send">
             ↑
           </button>
 
         </div>
-
       </footer>
 
     </main>
   </div>
 
-  <!-- JavaScript logic -->
-  <script src="app.js"></script>
+  <!-- JS (LOAD ONCE, AT END) -->
+  <script src="/ui/app.js"></script>
 
 </body>
 </html>

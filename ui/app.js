@@ -1,145 +1,226 @@
-// Run this code only after the HTML page is fully loaded
-document.addEventListener("DOMContentLoaded", () => {
+console.log("APP.JS LOADED AT", new Date().toISOString());
 
-  // Reference to the container where messages are shown
+// --------------------------------------------------
+// GLOBAL STATE FLAGS
+// --------------------------------------------------
+
+// Indicates app loaded with NO conversations in DB
+let isFreshStart = false;
+
+// --------------------------------------------------
+// MAIN BOOTSTRAP
+// --------------------------------------------------
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+  // -------------------------------
+  // DOM REFERENCES
+  // -------------------------------
+
   const chatMessages = document.getElementById("chat-messages");
-
-  // Reference to the textarea where user types
   const chatInput = document.getElementById("chat-input");
-
-  // Reference to the send button
   const sendButton = document.getElementById("send-button");
+  const fileInput = document.getElementById("file-input");
+  const attachButton = document.getElementById("attach-button");
+  const newChatButton = document.querySelector(".new-chat-btn");
 
-  // Main function to send a message
-  function sendMessage() {
+  // -------------------------------
+  // SEND MESSAGE
+  // -------------------------------
 
-    // Read user input and remove extra spaces
+  async function sendMessage() {
+
+    // Remove welcome message if present
+    const welcomeMessage = document.getElementById("welcome-message");
+    if (welcomeMessage) welcomeMessage.remove();
+
     const messageText = chatInput.value.trim();
+    if (!messageText) return;
 
-    // Stop if input is empty
-    if (messageText === "") return;
+    // Detect whether this is a NEW chat
+    const previousConversationId = localStorage.getItem("conversation_id");
+    const isNewChat = isFreshStart || !previousConversationId;
 
-    // ---------- USER MESSAGE ----------
+    // Render user message immediately
+    appendUserMessage(messageText);
 
-    // Create a div for user's message
-    const userMessage = document.createElement("div");
-
-    // Apply user message styling
-    userMessage.className = "user-message";
-
-    // Preserve formatting exactly as typed
-    userMessage.textContent = messageText;
-
-    // Add message to chat
-    chatMessages.appendChild(userMessage);
-
-    // Clear textarea after sending
     chatInput.value = "";
-
-    // Reset textarea height back to original
     chatInput.style.height = "auto";
 
-    // Scroll chat to bottom
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-
-    // ---------- THINKING INDICATOR ----------
-
-    // Create bot "Thinking..." message
+    // Thinking indicator
     const thinking = document.createElement("div");
-
-    // Apply bot styling
     thinking.className = "bot-message";
-
-    // Show thinking text
     thinking.textContent = "Thinking...";
-
-    // Add to chat
     chatMessages.appendChild(thinking);
-
-    // Scroll again
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    // ---------- SIMULATED BOT RESPONSE ----------
+    try {
+      const response = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conversation_id: previousConversationId,
+          message: messageText
+        })
+      });
 
-    // Simulate backend delay
-    setTimeout(() => {
+      const data = await response.json();
 
-      // Remove thinking indicator
+      // Persist conversation_id
+      localStorage.setItem("conversation_id", data.conversation_id);
+
+      // If this was first message of a new chat → add sidebar item immediately
+      if (isNewChat) {
+        addConversationToSidebar({
+          conversation_id: data.conversation_id,
+          title: messageText.split(" ").slice(0, 6).join(" ")
+        });
+
+        // Cold-start handled — reset flag
+        isFreshStart = false;
+      }
+
       thinking.remove();
+      appendAssistantMessage(data.reply);
 
-      // Create actual bot response
-      const botMessage = document.createElement("div");
-
-      // Apply bot styling
-      botMessage.className = "bot-message";
-
-      // Temporary response text
-      botMessage.textContent = "Got it! I’ve received your message.";
-
-      // Add to chat
-      chatMessages.appendChild(botMessage);
-
-      // Scroll to bottom
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-
-    }, 1200);
+    } catch (error) {
+      thinking.remove();
+      appendAssistantMessage("Something went wrong. Please try again.");
+      console.error("Chat error:", error);
+    }
   }
 
-  // Send message when send button is clicked
+  // -------------------------------
+  // EVENT LISTENERS
+  // -------------------------------
+
   sendButton.addEventListener("click", sendMessage);
 
-  // Keyboard behavior inside textarea
   chatInput.addEventListener("keydown", (e) => {
-
-    // Enter without Shift → send message
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();            // Prevent new line
-      sendMessage();                 // Send message
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  chatInput.addEventListener("input", () => {
+    chatInput.style.height = "auto";
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 200) + "px";
+  });
+
+  attachButton.addEventListener("click", () => fileInput.click());
+
+  fileInput.addEventListener("change", () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    appendUserMessage(`📎 Attached: ${file.name}`);
+    fileInput.value = "";
+  });
+
+  // -------------------------------
+  // LOAD SIDEBAR + RESTORE CHAT
+  // -------------------------------
+
+  try {
+    const response = await fetch("/conversations?user_id=default_user");
+    const conversations = await response.json();
+
+    // 🔑 CRITICAL FIX: Detect empty DB
+    if (conversations.length === 0) {
+      isFreshStart = true;
+      localStorage.removeItem("conversation_id");
     }
 
-    // Shift + Enter → default behavior (new line)
+    conversations.forEach(addConversationToSidebar);
+
+    const lastConversationId = localStorage.getItem("conversation_id");
+    if (lastConversationId) {
+      openConversation(lastConversationId);
+    }
+
+  } catch (error) {
+    console.error("Failed to restore conversations:", error);
+  }
+
+  // -------------------------------
+  // + NEW CHAT
+  // -------------------------------
+
+  newChatButton.addEventListener("click", () => {
+
+    clearChatWindow();
+    localStorage.removeItem("conversation_id");
+
+    const welcome = document.createElement("div");
+    welcome.id = "welcome-message";
+    welcome.className = "bot-message";
+    welcome.textContent = "Start a new conversation 👋";
+
+    chatMessages.appendChild(welcome);
   });
 
-  // Auto-resize textarea while typing
-  chatInput.addEventListener("input", () => {
-
-    // Reset height so shrinking works
-    chatInput.style.height = "auto";
-
-    // Expand height up to 200px max
-    chatInput.style.height =
-      Math.min(chatInput.scrollHeight, 200) + "px";
-  });
-
-  // Reference to hidden file input
-const fileInput = document.getElementById("file-input");
-
-// Reference to attach (+) button
-const attachButton = document.getElementById("attach-button");
-
-// When + button is clicked, open file picker
-attachButton.addEventListener("click", () => {
-  fileInput.click(); // Opens system file dialog
 });
 
-// When a file is selected
-fileInput.addEventListener("change", () => {
-  const file = fileInput.files[0];
+// ==================================================
+// GLOBAL HELPERS (INTENTIONALLY OUTSIDE DOM READY)
+// ==================================================
 
-  // If no file selected, do nothing
-  if (!file) return;
+async function openConversation(conversationId) {
 
-  // Temporary UI feedback (later we’ll upload it)
-  const fileMessage = document.createElement("div");
-  fileMessage.className = "user-message";
-  fileMessage.textContent = `📎 Attached: ${file.name}`;
-  chatMessages.appendChild(fileMessage);
+  localStorage.setItem("conversation_id", conversationId);
 
+  const response = await fetch(`/chat/history/${conversationId}`);
+  const messages = await response.json();
+
+  clearChatWindow();
+
+  messages.forEach(msg => {
+    msg.role === "user"
+      ? appendUserMessage(msg.message)
+      : appendAssistantMessage(msg.message);
+  });
+}
+
+function addConversationToSidebar(convo) {
+
+  const chatHistory = document.getElementById("chat-history");
+
+  // Prevent duplicates
+  if ([...chatHistory.children].some(el => el.dataset.id === convo.conversation_id)) {
+    return;
+  }
+
+  const item = document.createElement("div");
+  item.className = "chat-history-item";
+  item.dataset.id = convo.conversation_id;
+  item.textContent = convo.title || "New Chat";
+
+  item.addEventListener("click", () => {
+    openConversation(convo.conversation_id);
+  });
+
+  // Newest on top (ChatGPT-like)
+  chatHistory.prepend(item);
+}
+
+function clearChatWindow() {
+  document.getElementById("chat-messages").innerHTML = "";
+}
+
+function appendUserMessage(text) {
+  const chatMessages = document.getElementById("chat-messages");
+  const msg = document.createElement("div");
+  msg.className = "user-message";
+  msg.textContent = text;
+  chatMessages.appendChild(msg);
   chatMessages.scrollTop = chatMessages.scrollHeight;
+}
 
-  // Reset input so same file can be re-selected later
-  fileInput.value = "";
-});
-
-
-});
+function appendAssistantMessage(text) {
+  const chatMessages = document.getElementById("chat-messages");
+  const msg = document.createElement("div");
+  msg.className = "bot-message";
+  msg.textContent = text;
+  chatMessages.appendChild(msg);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
