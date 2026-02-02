@@ -19,3 +19,6 @@ data/chroma/
 
 # VS Code
 .vscode/
+
+#resumes
+app/static

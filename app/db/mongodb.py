@@ -22,3 +22,4 @@ db = client[os.getenv("MONGO_DB_NAME")]
 
 conversations_collection = db["conversations"]
 chats_collection = db["chats"]
+resume_collection = db["resume_normalized"]
