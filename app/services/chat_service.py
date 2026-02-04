@@ -1,5 +1,12 @@
+# app/services/chat_service.py
+
 from app.repositories.chat_repo import ChatRepository
 from app.repositories.conversation_repo import ConversationRepository
+
+# 🔹 NEW imports for the pipeline
+from app.user_query.planner_agent import classify_intent
+from app.user_query.metadata_filtering.mongodb_agent import run_mongodb_agent
+from app.user_query.response_agent import format_response
 
 
 class ChatService:
@@ -13,7 +20,6 @@ class ChatService:
     def _generate_title_from_message(self, message: str) -> str:
         """
         Generate a deterministic conversation title from the first user message.
-        No LLM is used here — this is fast, predictable, and safe.
         """
 
         cleaned = message.strip()
@@ -30,10 +36,8 @@ class ChatService:
         """
         Process a user message within a conversation.
 
-        GUARANTEES:
-        - Conversation document exists (defensive creation)
-        - Title is generated exactly once
-        - Chats are always linked to a valid conversation
+        PIPELINE:
+        UI → Planner → MongoDB Agent → Response Agent → UI
         """
 
         # --------------------------------------------------
@@ -43,16 +47,13 @@ class ChatService:
         conversation = self.conversation_repo.get_by_id(conversation_id)
 
         if conversation is None:
-            # Conversation missing (DB reset, stale client, etc.)
-            # Create it defensively
             conversation = self.conversation_repo.create_conversation(
-                user_id="default_user"  # later replace with real auth
+                user_id="default_user"
             )
-
             conversation_id = conversation["conversation_id"]
 
         # --------------------------------------------------
-        # 1️⃣ Save the user's message
+        # 1️⃣ Save the user's message (SOURCE OF TRUTH)
         # --------------------------------------------------
 
         self.chat_repo.save_message(
@@ -62,34 +63,58 @@ class ChatService:
         )
 
         # --------------------------------------------------
-        # 2️⃣ Retrieve message history
+        # 2️⃣ Retrieve message history (used only for title)
         # --------------------------------------------------
 
         history = self.chat_repo.get_history(conversation_id)
-
         user_messages = [m for m in history if m["role"] == "user"]
         is_first_message = len(user_messages) == 1
 
         # --------------------------------------------------
-        # 3️⃣ Generate title only on first message
+        # 3️⃣ Generate title ONLY on first user message
         # --------------------------------------------------
 
         if is_first_message:
             title = self._generate_title_from_message(user_message)
-
             self.conversation_repo.update_title(
                 conversation_id=conversation_id,
                 title=title,
             )
 
         # --------------------------------------------------
-        # 4️⃣ Generate assistant reply
+        # 4️⃣ PLANNER AGENT — intent classification
         # --------------------------------------------------
 
-        assistant_reply = f"You said: {user_message}"
+        planner_output = classify_intent(user_message)
+        print("🧭 Planner response:", planner_output)
+        intent = planner_output["intent"]
+  
 
         # --------------------------------------------------
-        # 5️⃣ Save assistant reply
+        # 5️⃣ ROUTING BASED ON PLANNER DECISION
+        # --------------------------------------------------
+
+        if intent == "metadata_filtering":
+            # MongoDB agent builds + executes query
+            results = run_mongodb_agent(user_message)
+
+            # Response agent formats UI-friendly output
+            assistant_reply = format_response(user_message, results)
+
+        elif intent == "job_description":
+            # JD handling will be added later
+            assistant_reply = (
+                "Job description handling is not implemented yet."
+            )
+
+        else:
+            # Defensive fallback (should never happen)
+            assistant_reply = (
+                "Sorry, I could not understand your request."
+            )
+
+        # --------------------------------------------------
+        # 6️⃣ Save assistant response
         # --------------------------------------------------
 
         self.chat_repo.save_message(
@@ -99,13 +124,13 @@ class ChatService:
         )
 
         # --------------------------------------------------
-        # 6️⃣ Update last activity timestamp
+        # 7️⃣ Update conversation timestamp
         # --------------------------------------------------
 
         self.conversation_repo.update_timestamp(conversation_id)
 
         # --------------------------------------------------
-        # 7️⃣ Return reply
+        # 8️⃣ Return response to UI
         # --------------------------------------------------
 
         return assistant_reply
