@@ -44,29 +44,31 @@ Allowed metadata operations:
 - comparison (>, <, >=, <=)
 - aggregation such as count, how many, number of candidates
 
-Decision rules (apply in this order):
+Decision rules:
 
-1. Metadata filtering:
-- If the user query explicitly asks to list, find, filter, or count candidates
-  AND the query uses ONLY the metadata fields above with explicit values
-  (for example skills, location, years of experience),
+1. Job Description DOCUMENT:
+- If the user_query's first line contains exactly "Job Description:" or "job description:"
+    THEN classify it as "job_description"
+
+2. Metadata filtering:
+- If the user EXPLICITLY asks to list, find, filter, show,
+  or count candidates
+  AND the query uses ONLY metadata fields
+  (skills, location, years of experience),
   THEN classify as metadata_filtering.
 - Queries containing aggregation words like "how many" or "count"
   are STILL metadata_filtering if they operate only on metadata fields.
 
-2. Job description:
-- If the user query describes a job role, hiring requirement,
-  responsibilities, required skills
-- If the user query contains hiring or role-definition language such as
-  "we need", "we are hiring", "looking for", "seeking", "role requires",
-  "responsibilities include",
-  AND does NOT ask to list, find, or count candidates,
-  THEN classify as job_description.
-- Even if skills or years of experience are mentioned,
-  classify as job_description when no candidate retrieval is requested.
 
 User query:
 <user_query>
+
+
+If job description applies, return ONLY:
+{
+  "intent": "job_description",
+  "confidence_score": <float between 0 and 1>
+}
 
 If metadata filtering applies, return ONLY:
 {
@@ -75,11 +77,7 @@ If metadata filtering applies, return ONLY:
   "confidence_score": <float between 0 and 1>
 }
 
-Otherwise return ONLY:
-{
-  "intent": "job_description",
-  "confidence_score": <float between 0 and 1>
-}
+
 
 Do NOT explain your reasoning.
 Do NOT add extra text.

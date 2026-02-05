@@ -7,7 +7,7 @@ from app.repositories.conversation_repo import ConversationRepository
 from app.user_query.planner_agent import classify_intent
 from app.user_query.metadata_filtering.mongodb_agent import run_mongodb_agent
 from app.user_query.response_agent import format_response
-
+from app.job.job_pipeline import run_job_ingestion_pipeline
 
 class ChatService:
     def __init__(self):
@@ -103,9 +103,11 @@ class ChatService:
 
         elif intent == "job_description":
             # JD handling will be added later
+            pipeline_result = run_job_ingestion_pipeline(user_message)
+            
             assistant_reply = (
-                "Job description handling is not implemented yet."
-            )
+                    "Received your job description"
+                )
 
         else:
             # Defensive fallback (should never happen)
