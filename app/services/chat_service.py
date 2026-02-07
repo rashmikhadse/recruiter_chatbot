@@ -8,6 +8,11 @@ from app.user_query.planner_agent import classify_intent
 from app.user_query.metadata_filtering.mongodb_agent import run_mongodb_agent
 from app.user_query.response_agent import format_response
 from app.job.job_pipeline import run_job_ingestion_pipeline
+import asyncio
+
+from app.user_query.bm25_search.bm25_search import run_bm25_search
+from app.user_query.semantic_search.semantic_search import run_semantic_search
+
 
 class ChatService:
     def __init__(self):
@@ -81,14 +86,17 @@ class ChatService:
                 title=title,
             )
 
+        
+        
+
         # --------------------------------------------------
         # 4️⃣ PLANNER AGENT — intent classification
         # --------------------------------------------------
 
         planner_output = classify_intent(user_message)
         print("🧭 Planner response:", planner_output)
+
         intent = planner_output["intent"]
-  
 
         # --------------------------------------------------
         # 5️⃣ ROUTING BASED ON PLANNER DECISION
@@ -101,23 +109,43 @@ class ChatService:
             # Response agent formats UI-friendly output
             assistant_reply = format_response(user_message, results)
 
+
         elif intent == "job_description":
-            # JD handling will be added later
-            pipeline_result = run_job_ingestion_pipeline(user_message)
-            
-            assistant_reply = (
-                    "Received your job description"
+
+            async def job_flow():
+                # 1️⃣ Fetch resumes
+                resume_list = run_mongodb_agent(user_message)
+
+                # 2️⃣ JD ingestion (must complete first)
+                ingested_job_result = run_job_ingestion_pipeline(user_message)
+
+                # 3️⃣ Run searches in parallel
+                bm25_task = asyncio.create_task(
+                    run_bm25_search(ingested_job_result, resume_list)
                 )
 
-        else:
-            # Defensive fallback (should never happen)
-            assistant_reply = (
-                "Sorry, I could not understand your request."
-            )
+                semantic_task = asyncio.create_task(
+                    run_semantic_search(ingested_job_result, resume_list)
+                )
 
-        # --------------------------------------------------
-        # 6️⃣ Save assistant response
-        # --------------------------------------------------
+                bm25_results, semantic_results = await asyncio.gather(
+                    bm25_task, semantic_task
+                )
+
+                # 4️⃣ Reciprocal Rank Fusion
+                rrf_results = run_rrf(bm25_results, semantic_results)
+
+                # 5️⃣ Response formatting
+                return format_response(user_message, rrf_results)
+
+            assistant_reply = asyncio.run(job_flow())
+
+
+        else:
+            # Defensive fallback
+            assistant_reply = "Sorry, I could not understand your request."
+
+
 
         self.chat_repo.save_message(
             conversation_id=conversation_id,

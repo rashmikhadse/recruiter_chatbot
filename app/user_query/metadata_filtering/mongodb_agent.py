@@ -42,7 +42,7 @@ Available metadata fields:
 
 Allowed operations:
 - filtering
-- comparisons (>, <, >=, <=)
+- comparisons (=, >, <, >=, <=)
 - aggregation (count, how many, average, min, max)
 
 Rules:
