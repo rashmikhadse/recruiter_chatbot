@@ -11,7 +11,8 @@ from app.job.job_pipeline import run_job_ingestion_pipeline
 import asyncio
 
 from app.user_query.bm25_search.bm25_search import run_bm25_search
-from app.user_query.semantic_search.semantic_search import run_semantic_search
+from app.user_query.semantic_search.semantic_search_inmemory import run_semantic_search
+from app.user_query.rrf import run_rrf
 
 
 class ChatService:
@@ -113,32 +114,48 @@ class ChatService:
         elif intent == "job_description":
 
             async def job_flow():
-                # 1️⃣ Fetch resumes
-                resume_list = run_mongodb_agent(user_message)
+                # 1️⃣ MongoDB filtering
+                raw_resumes = run_mongodb_agent(user_message)
 
-                # 2️⃣ JD ingestion (must complete first)
+                # Normalize to ObjectId list (CRITICAL)
+                resume_ids = [
+                    r["_id"] if isinstance(r, dict) else r
+                    for r in raw_resumes
+                ]
+
+                if not resume_ids:
+                    return format_response(user_message, [])
+
+                # 2️⃣ Job ingestion
                 ingested_job_result = run_job_ingestion_pipeline(user_message)
+                job_id = ingested_job_result["_id"]
 
-                # 3️⃣ Run searches in parallel
-                bm25_task = asyncio.create_task(
-                    run_bm25_search(ingested_job_result, resume_list)
+                # 3️⃣ Parallel search
+                bm25_task = asyncio.to_thread(
+                    run_bm25_search,
+                    job_id,
+                    resume_ids
                 )
 
-                semantic_task = asyncio.create_task(
-                    run_semantic_search(ingested_job_result, resume_list)
+                semantic_task = asyncio.to_thread(
+                    run_semantic_search,
+                    job_id,
+                    resume_ids
                 )
 
                 bm25_results, semantic_results = await asyncio.gather(
-                    bm25_task, semantic_task
+                    bm25_task,
+                    semantic_task
                 )
 
-                # 4️⃣ Reciprocal Rank Fusion
-                rrf_results = run_rrf(bm25_results, semantic_results)
+                # 4️⃣ RRF
+                results = run_rrf(bm25_results, semantic_results)
 
-                # 5️⃣ Response formatting
-                return format_response(user_message, rrf_results)
+                # 5️⃣ Response
+                return format_response(user_message, results)
 
             assistant_reply = asyncio.run(job_flow())
+
 
 
         else:

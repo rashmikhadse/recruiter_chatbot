@@ -16,7 +16,7 @@ where:
 from typing import List, Dict
 
 
-def reciprocal_rank_fusion(
+def run_rrf(
     bm25_results: List[Dict],
     semantic_results: List[Dict],
     k: int = 60,
@@ -104,9 +104,14 @@ def reciprocal_rank_fusion(
     # Return top N results
     # ----------------------------
     return [
-        {
-            "resume_id": resume_id,
-            "rrf_score": round(score, 6)  # rounded for readability/debugging
-        }
-        for resume_id, score in fused_ranking[:top_n]
+    {
+        "resume_id": resume_id,
+        "rrf_score": round(score, 6),
+        "rank": rank
+    }
+    for rank, (resume_id, score) in enumerate(
+        fused_ranking[:top_n],
+        start=1
+    )
     ]
+

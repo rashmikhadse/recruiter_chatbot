@@ -56,7 +56,7 @@ Decision rules:
   AND the query uses ONLY metadata fields
   (skills, location, years of experience),
   THEN classify as metadata_filtering.
-- Queries containing aggregation words like "how many" or "count"
+- Queries containing aggregation words like "how many" or "count" or "total"
   are STILL metadata_filtering if they operate only on metadata fields.
 
 

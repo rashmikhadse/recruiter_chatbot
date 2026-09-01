@@ -45,19 +45,36 @@ Allowed operations:
 - comparisons (=, >, <, >=, <=)
 - aggregation (count, how many, average, min, max)
 
-Rules:
+CRITICAL RULES:
 - Use ONLY the metadata fields listed above
-- Convert natural language conditions into MongoDB operators
-  (example: "2 years experience" → total_experience >= 2)
-- If the query asks for count / total number of resumes / total records
-and does NOT specify filters, generate a COUNT aggregation on the full collection.
-- Otherwise generate a MongoDB find query
 - Do NOT invent fields
 - Do NOT explain anything
 - Do NOT return results
 - Return ONLY valid JSON
+- Output MUST strictly follow one of the formats defined below
 
-Output formats (STRICT):
+NATURAL LANGUAGE CONVERSION RULES:
+- Convert experience expressions into numeric comparisons
+  (example: "2 years experience" → total_experience >= 2)
+- Convert skill mentions into array membership queries on primary_skills
+- Convert role/location mentions into exact or case-insensitive matches
+
+SPECIAL JOB DESCRIPTION RULE (IMPORTANT):
+- If the FIRST LINE of the user input contains the phrase
+  "Job Description" or "job description":
+    - IGNORE all other metadata conditions
+    - Extract ONLY total experience requirements (if any)
+    - Generate a MongoDB FIND query that filters ONLY on total_experience
+    - If no experience is mentioned, return a FIND query with an empty filter {}
+
+AGGREGATION RULES:
+- If the query asks for count / total number / how many resumes
+  AND does NOT specify filters:
+    - Generate a COUNT aggregation on the full collection
+- Otherwise:
+    - Generate a MongoDB FIND query
+
+OUTPUT FORMATS (STRICT):
 
 For filtering:
 {
@@ -70,6 +87,7 @@ For aggregation:
   "type": "aggregate",
   "pipeline": [ ... ]
 }
+
 """
 
 
